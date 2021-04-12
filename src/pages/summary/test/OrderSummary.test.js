@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { queryByText, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import SummaryForm from "../SummaryForm";
 
 test("initial conditions", () => {
@@ -26,16 +27,40 @@ test("checkbox enables/disables button", () => {
   const button = screen.getByRole("button", { name: /confirm order/i });
 
   //   click the checkbox to enable it
-  fireEvent.click(checkbox);
+  userEvent.click(checkbox);
 
   //   make sure checkbox is checked and button is now available
   expect(checkbox).toBeChecked();
   expect(button).toBeEnabled();
 
   //   click and disable checkbox
-  fireEvent.click(checkbox);
+  userEvent.click(checkbox);
 
   //   make sure checkbox unchecked and button disabled
   expect(checkbox).not.toBeChecked();
   expect(button).toBeDisabled();
+});
+
+test("popover responds to hover", () => {
+  render(<SummaryForm></SummaryForm>);
+
+  // popoever starts hidden
+  const nullPopover = screen.queryByText(
+    /no ice cream will actually be delivered/i
+  );
+  expect(nullPopover).not.toBeInTheDocument();
+
+  // appears when mouseover the label
+  const tnc = screen.getByText(/terms and conditions/i);
+  userEvent.hover(tnc);
+
+  const popoever = screen.getByText(/no ice cream will actually be delivered/i);
+  expect(popoever).toBeInTheDocument();
+
+  //disappears when mouse removed
+  userEvent.unhover(tnc);
+  const nextNullPopover = screen.queryByText(
+    /no ice cream will actually be delivered/i
+  );
+  expect(nextNullPopover).not.toBeInTheDocument();
 });
